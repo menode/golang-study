@@ -1,11 +1,11 @@
-package main
+// package main
 
-import (
-	"fmt"
+// import (
+// 	"fmt"
 
-	"rsc.io/quote"
-)
+// 	"rsc.io/quote"
+// )
 
-func main() {
-	fmt.Println(quote.Hello())
-}
+// func main() {
+// 	fmt.Println(quote.Hello())
+// }
