@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/menode/golang-study/pkg/setting"
 )
@@ -31,11 +32,12 @@ func init() {
 	user = sec.Key("USER").String()
 	password = sec.Key("PASSWORD").String()
 	host, exists := os.LookupEnv("HOST")
-	if !exists {
+	fmt.Println("host:", host)
+	fmt.Println("exists:", exists)
+	if !exists { 
 		host = sec.Key("HOST").String()
 	}
 	tablePrefix = sec.Key("TABLE_PREFIX").String()
-	fmt.Println("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local", user, password, host, dbName)
 	db, err = gorm.Open(dbType, fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local", user, password, host, dbName))
 	if err != nil {
 		log.Fatalf("Fail to open database: %v", err)
