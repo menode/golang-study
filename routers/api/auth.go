@@ -1,13 +1,13 @@
 package api
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
 	"github.com/menode/golang-study/models"
 	"github.com/menode/golang-study/pkg/e"
+	"github.com/menode/golang-study/pkg/logging"
 	"github.com/menode/golang-study/pkg/util"
 )
 
@@ -23,10 +23,9 @@ func GetAuth(c *gin.Context) {
 	valid := validation.Validation{}
 	a := auth{Username: username, Password: password}
 	ok, _ := valid.Valid(&a)
-
 	data := make(map[string]interface{})
 	code := e.INVALID_PARAMS
-	if !ok {
+	if ok {
 		isExist := models.CheckAuth(username, password)
 		if isExist {
 			token, err := util.GenerateToken(username, password)
@@ -42,7 +41,7 @@ func GetAuth(c *gin.Context) {
 		}
 	} else {
 		for _, err := range valid.Errors {
-			log.Printf("err.key: %s, err.message: %s", err.Key, err.Message)
+			logging.Info(err.Key, err.Message)
 
 		}
 	}
