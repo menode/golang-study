@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-
-	"rsc.io/quote"
 )
 
 func main() {
-	fmt.Println(quote.Hello())
+	server := NewServer("localhost", "8080")
+	server.Start()
+	fmt.Println(server)
 }
