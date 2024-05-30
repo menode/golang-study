@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net"
 )
 
@@ -57,9 +58,28 @@ func (user *User) Offline() {
 	user.server.BroadCast(user, "下线")
 }
 
+//s
+
+func (user *User) SendMsg(msg string) {
+	user.conn.Write([]byte(msg))
+}
+
 // 用户处理消息的业务
 func (user *User) DoMessage(msg string) {
-	user.server.BroadCast(user, msg)
+	fmt.Println(msg)
+	if msg == "who" {
+		//查询当前在线用户
+		user.server.mapLock.Lock()
+		for _, u := range user.server.OnlineMap {
+			onlineMsg := "[" + u.Addr + "]" + u.Name + ":" + "在线\n"
+			user.SendMsg(onlineMsg)
+		}
+		user.server.mapLock.Unlock()
+	} else {
+		//将用户发送的消息进行广播
+		user.server.BroadCast(user, msg)
+	}
+
 }
 
 func (user *User) ListenMessage() {
