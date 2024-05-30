@@ -11,14 +11,6 @@ type User struct {
 	conn net.Conn    //当前用户和客户端通信的链接句柄
 }
 
-func (user *User) ListenMessage() {
-	for {
-		msg := <-user.C //从用户中取值
-
-		user.conn.Write([]byte(msg + "\n"))
-	}
-}
-
 // 创建一个用户的API
 func NewUser(conn net.Conn) *User {
 	userAddr := conn.RemoteAddr().String()
@@ -34,4 +26,12 @@ func NewUser(conn net.Conn) *User {
 	go user.ListenMessage()
 
 	return user
+}
+
+func (user *User) ListenMessage() {
+	for {
+		msg := <-user.C //从用户中取值
+
+		user.conn.Write([]byte(msg + "\n"))
+	}
 }
