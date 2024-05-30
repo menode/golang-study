@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"strings"
 )
 
 type User struct {
@@ -43,7 +44,7 @@ func (user *User) Online() {
 	user.server.mapLock.Unlock()
 
 	//广播当前用户上线消息
-	user.server.BroadCast(user, "已上线")
+	user.server.BroadCast(user, "online")
 }
 
 // 用户的下线业务
@@ -55,7 +56,7 @@ func (user *User) Offline() {
 	user.server.mapLock.Unlock()
 
 	//广播当前用户上线消息
-	user.server.BroadCast(user, "下线")
+	user.server.BroadCast(user, "offline")
 }
 
 //s
@@ -71,10 +72,27 @@ func (user *User) DoMessage(msg string) {
 		//查询当前在线用户
 		user.server.mapLock.Lock()
 		for _, u := range user.server.OnlineMap {
-			onlineMsg := "[" + u.Addr + "]" + u.Name + ":" + "在线\n"
+			onlineMsg := "[" + u.Addr + "]" + u.Name + ":" + "online \n"
 			user.SendMsg(onlineMsg)
 		}
 		user.server.mapLock.Unlock()
+	} else if len(msg) > 7 && msg[:7] == "rename|" {
+		//消息格式：rename|张三
+		newName := strings.Split(msg, "|")[1]
+
+		//判断name是否存在
+		_, ok := user.server.OnlineMap[newName]
+		if ok {
+			user.SendMsg("this name is use\n")
+		} else {
+			user.server.mapLock.Lock()
+			delete(user.server.OnlineMap, user.Name)
+			user.server.OnlineMap[newName] = user
+			user.server.mapLock.Unlock()
+
+			user.Name = newName
+			user.SendMsg("you update name:" + newName + "\n")
+		}
 	} else {
 		//将用户发送的消息进行广播
 		user.server.BroadCast(user, msg)
