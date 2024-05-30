@@ -51,22 +51,16 @@ func (s *Server) ListenMessage() {
 }
 func (s *Server) handle(conn net.Conn) {
 	fmt.Println("链接成功")
-	//用户上线，创建一个user实例
-	user := NewUser(conn)
+	user := NewUser(conn, s)
+	user.Online()
 
-	s.mapLock.Lock()
-	s.OnlineMap[user.Name] = user
-	s.mapLock.Unlock()
-
-	//广播当前用户上线消息
-	s.BroadCast(user, "已上线")
 	//接受客户端发送的消息
 	go func() {
 		buf := make([]byte, 4096)
 		for {
 			n, err := conn.Read(buf)
 			if n == 0 {
-				s.BroadCast(user, "下线")
+				user.Offline()
 				return
 			}
 			if err != nil && n == 0 {
@@ -75,8 +69,9 @@ func (s *Server) handle(conn net.Conn) {
 			}
 			//提取用户消息（去除'\n'）
 			msg := string(buf[:n-1])
+
 			//将得到的消息进行广播
-			s.BroadCast(user, msg)
+			user.DoMessage(msg)
 		}
 	}()
 
