@@ -3,70 +3,16 @@
 
 openapi: 3.0.3
 info:
-    title: ""
+    title: Realworld API
+    description: The greeting service definition.
     version: 0.0.1
 paths:
-    /hello/{id}/sayhello/{sayname}:
-        post:
-            tags:
-                - Student
-            operationId: Student_Hello
-            parameters:
-                - name: id
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: sayname
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/api.helloworld.v1.HelloReq'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.helloworld.v1.HelloResp'
-    /hello/{name}:
-        get:
-            tags:
-                - Student
-            operationId: Student_Hello
-            parameters:
-                - name: name
-                  in: path
-                  required: true
-                  schema:
-                    type: string
-                - name: id
-                  in: query
-                  schema:
-                    type: string
-                - name: sayname
-                  in: query
-                  schema:
-                    type: string
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/api.helloworld.v1.HelloResp'
     /helloworld/{name}:
         get:
             tags:
-                - Greeter
+                - Realworld
             description: Sends a greeting
-            operationId: Greeter_SayHello
+            operationId: Realworld_SayHello
             parameters:
                 - name: name
                   in: path
@@ -79,32 +25,14 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/helloworld.v1.HelloReply'
+                                $ref: '#/components/schemas/realworld.v1.HelloReply'
 components:
     schemas:
-        api.helloworld.v1.HelloReq:
-            type: object
-            properties:
-                name:
-                    type: string
-                id:
-                    type: string
-                sayname:
-                    type: string
-        api.helloworld.v1.HelloResp:
-            type: object
-            properties:
-                message:
-                    type: string
-                text:
-                    type: string
-        helloworld.v1.HelloReply:
+        realworld.v1.HelloReply:
             type: object
             properties:
                 message:
                     type: string
             description: The response message containing the greetings
 tags:
-    - name: Greeter
-      description: The greeting service definition.
-    - name: Student
+    - name: Realworld
