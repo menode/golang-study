@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	"kratos-test/internal/conf"
@@ -64,7 +63,6 @@ func main() {
 			file.NewSource(flagconf),
 		),
 	)
-	fmt.Println("flagconf:", flagconf)
 
 	defer c.Close()
 
@@ -76,7 +74,7 @@ func main() {
 	if err := c.Scan(&bc); err != nil {
 		panic(err)
 	}
-	fmt.Println("bc:", bc)
+
 	app, cleanup, err := wireApp(bc.Server, bc.Data, logger)
 	if err != nil {
 		panic(err)

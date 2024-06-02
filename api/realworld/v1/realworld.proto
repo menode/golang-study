@@ -43,6 +43,7 @@ service Realworld {
   rpc FollowProfile(GetProfileReq) returns (ProfileReply) {
     option (google.api.http) = {
       post: "/api/profiles/{username}/follow"
+      body: "*"
     };
   }
 
@@ -58,9 +59,15 @@ service Realworld {
     };
   }
 
-  rpc GetArticles(Empty) returns (MultipleArticlesReply) {
+  rpc GetArticles(ListArticles) returns (MultipleArticlesReply) {
     option (google.api.http) = {
       get: "/api/articles"
+    };
+  }
+
+  rpc FeedArticles(FeedArticlesRequest) returns (MultipleArticlesReply) {
+    option (google.api.http) = {
+      get: "/api/articles/feed"
     };
   }
 
@@ -78,7 +85,7 @@ service Realworld {
     };
   }
 
-  rpc DeleteArticle(GetArticleReq) returns (Empty) {
+  rpc DeleteArticle(DeleteArticleReq) returns (Empty) {
     option (google.api.http) = {
       delete: "/api/articles/{slug}"
     };
@@ -91,14 +98,69 @@ service Realworld {
     };
   }
 
-  
+  rpc GetComments(GetCommentsReq) returns (MultipleArticlesReply) {
+    option (google.api.http) = {
+      get: "/api/articles/{slug}/comments"
+    };
+  }
+
+  rpc DeleteComment(DeleteCommentReq) returns (Empty) {
+    option (google.api.http) = {
+      delete: "/api/articles/{slug}/comments/{id}"
+    };
+  }
+
+  rpc FavoriteArticle(FavoriteArticleReq) returns (ArticleReply) {
+    option (google.api.http) = {
+      post: "/api/articles/{slug}/favorite"
+      body: "*"
+    };
+  }
+
+  rpc UnfavoriteArticle(FavoriteArticleReq) returns (ArticleReply) {
+    option (google.api.http) = {
+      delete: "/api/articles/{slug}/favorite"
+    };
+  }
+ 
+  rpc GetTags(Empty) returns (TagsReply) {
+    option (google.api.http) = {
+      get: "/api/tags"
+    };
+  }
 }
 
+message FavoriteArticleReq {
+    string slug = 1;
+}
+
+message DeleteCommentReq {
+    string slug = 1;
+    uint32 id = 2;
+}
+message GetCommentsReq {
+    string slug = 1;
+}
+message DeleteArticleReq {
+    string slug = 1;
+}
+message ListArticles {
+    uint32 limit = 1;
+    uint32 offset = 2;
+    string tag = 3;
+    string author = 4;
+    string favorited = 5;
+}
+message FeedArticlesRequest {
+    uint32 limit = 1;
+    uint32 offset = 2;
+}
 message AddCommentReq {
     message Comment {
         string body = 1;
     }
     Comment comment = 1;
+    string slug = 2;
   }
   
 message UpdateArticleReq {

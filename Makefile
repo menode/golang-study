@@ -16,6 +16,7 @@ else
 	API_PROTO_FILES=$(shell find api -name *.proto)
 endif
 
+
 .PHONY: wire
 # init env
 wire:
@@ -37,6 +38,12 @@ config:
 	       --proto_path=./third_party \
  	       --go_out=paths=source_relative:./internal \
 	       $(INTERNAL_PROTO_FILES)
+
+
+.PHONY: run
+# run env
+run:
+	 kratos run
 
 .PHONY: api
 # generate api proto
