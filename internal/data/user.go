@@ -21,6 +21,20 @@ func NewUserRepo(data *Data, logger log.Logger) biz.UserRepo {
 	}
 }
 
-func (r *userRepo) CreateUser(ctx context.Context, g *biz.User) error {
+func (r *userRepo) CreateUser(ctx context.Context, u *biz.User) error {
+	r.data.db.Create(u)
 	return nil
+}
+
+type profileRepo struct {
+	data *Data
+	log  *log.Helper
+}
+
+// NewGreeterRepo .
+func NewProfileRepo(data *Data, logger log.Logger) biz.ProfileRepo {
+	return &profileRepo{
+		data: data,
+		log:  log.NewHelper(logger),
+	}
 }

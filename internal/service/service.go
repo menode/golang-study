@@ -18,6 +18,6 @@ type RealworldService struct {
 	log *log.Helper
 }
 
-func NewRealworldService(uc *biz.UserUsecase) *RealworldService {
-	return &RealworldService{uc: uc, log: log.NewHelper(log.DefaultLogger)}
+func NewRealworldService(uc *biz.UserUsecase, logger log.Logger) *RealworldService {
+	return &RealworldService{uc: uc, log: log.NewHelper(logger)}
 }
