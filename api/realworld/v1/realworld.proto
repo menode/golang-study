@@ -3,6 +3,7 @@ syntax = "proto3";
 package realworld.v1;
 
 import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "kratos-test/api/realworld/v1;v1";
 
@@ -16,7 +17,7 @@ service Realworld {
       body: "*"
     };
   }
-  rpc Register(RegisterReq) returns (UserReply) {
+  rpc Register(RegisterReq) returns (RegisterResp) {
     option (google.api.http) = {
       post: "/api/users"
       body: "*"
@@ -241,8 +242,8 @@ message ArticleReply {
       string description = 3;
       string body = 4;
       repeated string tag_list = 5;
-      string created_at = 6;
-      string updated_at = 7;
+      google.protobuf.Timestamp created_at = 6;
+      google.protobuf.Timestamp updated_at = 7;
       bool favorited = 8;
       uint32 favorites_count = 9;
       Author author = 10;
@@ -264,8 +265,8 @@ message MultipleArticlesReply{
       string description = 3;
       string body = 4;
       repeated string tag_list = 5;
-      string created_at = 6;
-      string updated_at = 7;
+      google.protobuf.Timestamp created_at = 6;
+      google.protobuf.Timestamp updated_at = 7;
       bool favorited = 8;
       uint32 favorites_count = 9;
       Author author = 10;
@@ -288,8 +289,8 @@ message MultipleArticlesReply{
 
     message Comment {
         uint32 id = 1;
-        string created_at = 2;
-        string updated_at = 3;
+        google.protobuf.Timestamp created_at = 2;
+        google.protobuf.Timestamp updated_at = 3;
         string body = 4;
         Author author = 5;
     }
@@ -308,8 +309,8 @@ message CommentsReply {
 
     message Comments {
         uint32 id = 1;
-        string created_at = 2;
-        string updated_at = 3;
+        google.protobuf.Timestamp created_at = 2;
+        google.protobuf.Timestamp updated_at = 3;
         string body = 4;
         Author author = 5;
     }
@@ -345,5 +346,13 @@ message RegisterReq {
   User user = 1;
 }
 message RegisterResp {
-  string token = 1;
+  message User {
+     string email = 1;
+      string token = 2;
+      string username = 3;
+      string bio = 4;
+      string image = 5;
+  }
+  User user = 1;
+ 
 }

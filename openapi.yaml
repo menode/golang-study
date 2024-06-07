@@ -363,7 +363,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/realworld.v1.UserReply'
+                                $ref: '#/components/schemas/realworld.v1.RegisterResp'
     /api/users/login:
         post:
             tags:
@@ -419,8 +419,10 @@ components:
                         type: string
                 createdAt:
                     type: string
+                    format: date-time
                 updatedAt:
                     type: string
+                    format: date-time
                 favorited:
                     type: boolean
                 favoritesCount:
@@ -463,8 +465,10 @@ components:
                     format: uint32
                 createdAt:
                     type: string
+                    format: date-time
                 updatedAt:
                     type: string
+                    format: date-time
                 body:
                     type: string
                 author:
@@ -539,8 +543,10 @@ components:
                         type: string
                 createdAt:
                     type: string
+                    format: date-time
                 updatedAt:
                     type: string
+                    format: date-time
                 favorited:
                     type: boolean
                 favoritesCount:
@@ -588,6 +594,24 @@ components:
                 email:
                     type: string
                 password:
+                    type: string
+        realworld.v1.RegisterResp:
+            type: object
+            properties:
+                user:
+                    $ref: '#/components/schemas/realworld.v1.RegisterResp_User'
+        realworld.v1.RegisterResp_User:
+            type: object
+            properties:
+                email:
+                    type: string
+                token:
+                    type: string
+                username:
+                    type: string
+                bio:
+                    type: string
+                image:
                     type: string
         realworld.v1.TagsReply:
             type: object
