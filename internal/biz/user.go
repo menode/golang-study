@@ -8,12 +8,12 @@ import (
 )
 
 type User struct {
-	ID           uint
-	Email        string
-	Username     string
-	Bio          string
-	Image        string
-	PasswordHash string
+	ID       uint
+	Email    string
+	Username string
+	Bio      string
+	Image    string
+	Password string
 }
 type UserLogin struct {
 	Email    string
@@ -82,9 +82,9 @@ func (uc *UserUsecase) CreateUser(ctx context.Context, u *User) error {
 }
 func (uc *UserUsecase) Registry(ctx context.Context, username, email, password string) (*UserLogin, error) {
 	u := &User{
-		Email:        email,
-		Username:     username,
-		PasswordHash: hashPassword(password),
+		Email:    email,
+		Username: username,
+		Password: hashPassword(password),
 	}
 	if err := uc.ur.CreateUser(ctx, u); err != nil {
 		return nil, err
