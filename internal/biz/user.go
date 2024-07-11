@@ -3,6 +3,10 @@ package biz
 import (
 	"context"
 
+	"kratos-test/internal/conf"
+	"kratos-test/internal/pkg/middleware/auth"
+
+	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -16,11 +20,12 @@ type User struct {
 	Password string
 }
 type UserLogin struct {
-	Email    string
-	Username string
-	Token    string
-	Image    string
-	Bio      string
+	Email        string
+	Username     string
+	Token        string
+	Image        string
+	Bio          string
+	PasswordHash string
 }
 
 type UserUpdate struct {
@@ -50,7 +55,7 @@ func verifyPassword(hashed, input string) bool {
 
 type UserRepo interface {
 	CreateUser(ctx context.Context, user *User) error
-	// GetUserByEmail(ctx context.Context, email string) (*User, error)
+	GetUserByEmail(ctx context.Context, email string) (*UserLogin, error)
 	// GetUserByUsername(ctx context.Context, username string) (*User, error)
 	// GetUserByID(ctx context.Context, id uint) (*User, error)
 	// UpdateUser(ctx context.Context, user *User) error
@@ -60,19 +65,19 @@ type ProfileRepo interface {
 }
 
 type UserUsecase struct {
-	ur UserRepo
-	pr ProfileRepo
+	ur   UserRepo
+	pr   ProfileRepo
+	jwtc *conf.JWT
 
 	log *log.Helper
 }
 
-func NewUserUsecase(ur UserRepo, pr ProfileRepo, logger log.Logger) *UserUsecase {
-	return &UserUsecase{ur: ur, pr: pr, log: log.NewHelper(logger)}
+func NewUserUsecase(ur UserRepo, pr ProfileRepo, logger log.Logger, jwtc *conf.JWT) *UserUsecase {
+	return &UserUsecase{ur: ur, pr: pr, jwtc: jwtc, log: log.NewHelper(logger)}
 }
 
-func (uc *UserUsecase) generateToken(userID uint) string {
-	// return auth.generateToken(userID)
-	return string(userID)
+func (uc *UserUsecase) generateToken(username string) string {
+	return auth.GenerateToken(uc.jwtc.Secret, username)
 }
 func (uc *UserUsecase) CreateUser(ctx context.Context, u *User) error {
 	if err := uc.ur.CreateUser(ctx, u); err != nil {
@@ -92,6 +97,22 @@ func (uc *UserUsecase) Registry(ctx context.Context, username, email, password s
 	return &UserLogin{
 		Email:    email,
 		Username: username,
-		Token:    uc.generateToken(u.ID),
+		Token:    uc.generateToken(username),
 	}, nil
+}
+
+func (uc *UserUsecase) Login(ctx context.Context, email, password string) (*UserLogin, error) {
+	if email == "" || password == "" {
+		return nil, errors.BadRequest("USER_REQUEST", "pless edit email and passwor") // 未定义
+	}
+	u, err := uc.ur.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if !verifyPassword(u.PasswordHash, password) {
+		return nil, errors.Unauthorized("LOGIN_AUTH", "auth error") // 未定义
+	}
+	u.Token = uc.generateToken(u.Username)
+
+	return u, nil
 }
