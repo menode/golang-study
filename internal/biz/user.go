@@ -12,20 +12,19 @@ import (
 )
 
 type User struct {
-	ID       uint
-	Email    string
-	Username string
-	Bio      string
-	Image    string
-	Password string
-}
-type UserLogin struct {
+	ID           uint
 	Email        string
 	Username     string
-	Token        string
-	Image        string
 	Bio          string
+	Image        string
 	PasswordHash string
+}
+type UserLogin struct {
+	Email    string
+	Username string
+	Token    string
+	Image    string
+	Bio      string
 }
 
 type UserUpdate struct {
@@ -55,10 +54,10 @@ func verifyPassword(hashed, input string) bool {
 
 type UserRepo interface {
 	CreateUser(ctx context.Context, user *User) error
-	GetUserByEmail(ctx context.Context, email string) (*UserLogin, error)
+	GetUserByEmail(ctx context.Context, email string) (*User, error)
 	// GetUserByUsername(ctx context.Context, username string) (*User, error)
-	// GetUserByID(ctx context.Context, id uint) (*User, error)
-	// UpdateUser(ctx context.Context, user *User) error
+	GetUserByID(ctx context.Context, id uint) (*User, error)
+	UpdateUser(ctx context.Context, user *User) (*User, error)
 }
 
 type ProfileRepo interface {
@@ -76,8 +75,8 @@ func NewUserUsecase(ur UserRepo, pr ProfileRepo, logger log.Logger, jwtc *conf.J
 	return &UserUsecase{ur: ur, pr: pr, jwtc: jwtc, log: log.NewHelper(logger)}
 }
 
-func (uc *UserUsecase) generateToken(username string) string {
-	return auth.GenerateToken(uc.jwtc.Secret, username)
+func (uc *UserUsecase) generateToken(userID uint) string {
+	return auth.GenerateToken(uc.jwtc.Secret, userID)
 }
 func (uc *UserUsecase) CreateUser(ctx context.Context, u *User) error {
 	if err := uc.ur.CreateUser(ctx, u); err != nil {
@@ -87,9 +86,9 @@ func (uc *UserUsecase) CreateUser(ctx context.Context, u *User) error {
 }
 func (uc *UserUsecase) Registry(ctx context.Context, username, email, password string) (*UserLogin, error) {
 	u := &User{
-		Email:    email,
-		Username: username,
-		Password: hashPassword(password),
+		Email:        email,
+		Username:     username,
+		PasswordHash: hashPassword(password),
 	}
 	if err := uc.ur.CreateUser(ctx, u); err != nil {
 		return nil, err
@@ -97,7 +96,7 @@ func (uc *UserUsecase) Registry(ctx context.Context, username, email, password s
 	return &UserLogin{
 		Email:    email,
 		Username: username,
-		Token:    uc.generateToken(username),
+		Token:    uc.generateToken(u.ID),
 	}, nil
 }
 
@@ -112,7 +111,44 @@ func (uc *UserUsecase) Login(ctx context.Context, email, password string) (*User
 	if !verifyPassword(u.PasswordHash, password) {
 		return nil, errors.Unauthorized("LOGIN_AUTH", "auth error") // 未定义
 	}
-	u.Token = uc.generateToken(u.Username)
+	return &UserLogin{
+		Email:    u.Email,
+		Username: u.Username,
+		Token:    uc.generateToken(u.ID),
+		Image:    u.Image,
+		Bio:      u.Bio,
+	}, nil
 
+}
+func (uc *UserUsecase) CurrentUser(ctx context.Context) (*User, error) {
+
+	cu := auth.FromContext(ctx)
+	u, err := uc.ur.GetUserByID(ctx, cu.UserID)
+	if err != nil {
+		return nil, err
+	}
 	return u, nil
+}
+
+func (uc *UserUsecase) UpdateUser(ctx context.Context, uu *UserUpdate) (*UserLogin, error) {
+	cu := auth.FromContext(ctx)
+	u := &User{
+		ID:           cu.UserID,
+		Email:        uu.Email,
+		Username:     uu.Username,
+		Bio:          uu.Bio,
+		Image:        uu.Image,
+		PasswordHash: hashPassword(uu.Password),
+	}
+	user, err := uc.ur.UpdateUser(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	return &UserLogin{
+		Email:    user.Email,
+		Username: user.Username,
+		Token:    uc.generateToken(user.ID),
+		Image:    user.Image,
+		Bio:      user.Bio,
+	}, nil
 }

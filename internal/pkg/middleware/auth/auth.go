@@ -7,16 +7,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateToken(secret, username string) string {
+type currentUserKey struct{}
+type CurrentUser struct {
+	UserID uint
+}
+
+func GenerateToken(secret string, userid uint) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": username,
-		"nbf":      time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+		"userid": userid,
+		"nbf":    time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 	})
 
 	// Sign and get the complete encoded token as a string using the secret
@@ -37,24 +41,32 @@ func JWTAuth(secret string) middleware.Middleware {
 				if len(auths) != 2 || !strings.EqualFold(auths[0], "Token") {
 					return nil, errors.New("jwt token missing invalid authorization")
 				}
-				jwtToken := auths[1]
 
-				token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+				token, err := jwt.Parse(auths[1], func(token *jwt.Token) (interface{}, error) {
 					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 						return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 					}
-					return []byte("secret"), nil
+					return []byte(secret), nil
 				})
 				if err != nil {
 					return nil, err
 				}
 				if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-					spew.Dump(claims)
-					ctx = context.WithValue(ctx, "claims", claims)
+					if u, ok := claims["userid"]; ok {
+						ctx = WithContext(ctx, &CurrentUser{UserID: uint(u.(float64))})
+					}
 				}
 
 			}
 			return handler(ctx, req)
 		}
 	}
+}
+
+func FromContext(ctx context.Context) *CurrentUser {
+	return ctx.Value(currentUserKey{}).(*CurrentUser)
+}
+
+func WithContext(ctx context.Context, user *CurrentUser) context.Context {
+	return context.WithValue(ctx, currentUserKey{}, user)
 }
